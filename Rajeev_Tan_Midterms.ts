@@ -1,127 +1,191 @@
 interface SmartUse {
   turnOff(): void;
   turnOn(): void;
-  setBrightness(brightness: number): void;
-  setTemperature(temperature: number): void;
-  setColor(color: string): void;
-  locked(): void;
-  unlocked(): void;
   connect(): void;
   disconnect(): void;
-  isLocked(): void;
+  getEnergyLeft(): number;
+  autoCharge(): void;
+  setTimer(timer: number): void;
+  mute(): void;
+  unmute(): void;
+  adjustVolume(volume: number): void;
+
 }
 
 abstract class SmartHome implements SmartUse {
   protected isConnected: boolean = false;
   protected isDeviceOn: boolean = false;
-  protected isDeviceLocked: boolean = false;
+  protected currentEnergy: number = 100
+  protected currentVolume: number = 65;
+  protected currentTimerSet: number = 0;
 
   abstract turnOff(): void;
+
   abstract turnOn(): void;
-  abstract setBrightness(brightness: number): void;
-  abstract setTemperature(temperature: number): void;
-  abstract setColor(color: string): void;
-  abstract isLocked(): void;
 
-  public locked(): void {
-    this.isDeviceOn = true;
-  }
-
-  public unlocked(): void {
-    this.isDeviceOn = false;
-  }
-
-  public connect(): void {
+  connect(): void {
     this.isConnected = true;
   }
 
-  public disconnect(): void {
+  disconnect(): void {
     this.isConnected = false;
   }
 
+  setTimer(timer: number): void {
+    this.currentTimerSet = timer;
+  }
+
+  mute(): void {
+    this.currentVolume = 0;
+  }
+
+  unmute(): void {
+    this.currentVolume = 65;
+  }
+
+  autoCharge(): void {
+    this.currentEnergy = 100;
+  }
+
+  getEnergyLeft(): number {
+    return this.currentEnergy
+   }
+
+  adjustVolume(volume: number): void {
+    if (volume >= 0 && volume <= 100) {
+      this.currentVolume = volume;
+  }
 }
+}
+
 class SmartTV extends SmartHome {
-  private _currentChannel: string;
-  private _currentBrightness: number;
-  private _currentColor: string;
-  private _currentVolume: number;
 
-  constructor(currentChannel: string, currentBrightness: number, currentColor: string, currentVolume: number) {
+  constructor (currentTimerSet: number, currentVolume: number) {
     super()
-    this._currentChannel = currentChannel;
-    this._currentBrightness = currentBrightness;
-    this._currentColor = currentColor;
-    this._currentVolume = currentVolume;
-  }
-
-  public turnOff(): void {
-    this.isDeviceOn = false;
-    console.log(`The SmartTV is off.`)
+    this.currentTimerSet = currentTimerSet;
+    this.currentVolume = currentVolume;
   }
 
   public turnOn(): void {
-    this.isDeviceOn = true;
-    console.log(`The SmartTV is on.`);
+    console.log('Smart TV is on');
   }
 
-  public setBrightness(brightness: number): void {
-    this._currentBrightness = brightness;
-    console.log(`The current brightness of the SmartTV is ${this._currentBrightness}`)
+  public turnOff(): void {
+    console.log('Smart TV is off');
   }
 
-  public setColor(color: string): void {
-    this._currentColor = color;
-    console.log(`The current color of the SmartTV is ${this._currentColor}`);
+  public connect(): void {
+    super.connect();
+    console.log(`Smart TV is connected`)
   }
 
-  public setChannel(channel: string): void {
-    this._currentChannel = channel;
+  public disconnect(): void {
+    super.disconnect();
+    console.log(`Smart TV is disconnected`)
   }
 
-  public getChannel(): void {
-    console.log(`The current channel is ${this._currentChannel}`);
+  public setTimer(timer: number): void {
+      super.setTimer(timer);
   }
 
-  public setVolume(volume: number): void {
-    this._currentVolume = volume;
+  public mute(): void {
+    super.mute();
+    console.log(`Smart TV has been muted`)
   }
 
-  public getVolume(): void {
-    console.log(`The current volume is ${this._currentVolume}`)
+  public unmute(): void {
+    super.unmute();
+    console.log("Smart TV has been unmuted")
+  }
+
+  public autoCharge(): void {
+    super.autoCharge();
+    console.log("Smart TV has successfully charged")
+  }
+
+  public getEnergyLeft(): number {
+    return super.getEnergyLeft();
+  }
+
+  public adjustVolume(volume: number): void {
+    super.adjustVolume(volume);
+    console.log(`Current Volume is at ${this.currentVolume}`)
   }
 
 }
 
-class SmartLight extends SmartHome {
-  private currentBrightness: number = 50;
-  private currentColor: string = 'white';
+class SmartSpeaker extends SmartHome {
+  constructor (currentTimerSet: number, currentVolume: number) {
+    super()
+    this.currentTimerSet = currentTimerSet;
+    this.currentVolume = currentVolume;
+  }
 
   public turnOn(): void {
-    this.isDeviceOn = true;
-    console.log('Smart light is on');
+    console.log('Smart speaker is on');
   }
 
   public turnOff(): void {
-    this.isDeviceOn = false;
-    console.log('Smart light is off');
+    console.log('Smart speaker is off');
   }
 
-  public setBrightness(value: number): void {
-    this.currentBrightness = value;
-    console.log(`Smart light brightness set to ${value}`);
+  public connect(): void {
+    super.connect();
+    console.log(`Smart speaker is connected`)
   }
 
-  public setColor(color: string): void {
-    this.currentColor = color;
-    console.log(`Smart light color set to ${color}`);
+  public disconnect(): void {
+    super.disconnect();
+    console.log(`Smart speaker is disconnected`)
   }
 
-  public getCurrentBrightness(): number {
-    return this.currentBrightness;
+  public setTimer(timer: number): void {
+      super.setTimer(timer);
   }
 
-  public getCurrentColor(): string {
-    return this.currentColor;
+  public mute(): void {
+    super.mute();
+    console.log(`Smart speaker has been muted`)
   }
 
+  public unmute(): void {
+    super.unmute();
+    console.log("Smart speaker has been unmuted")
+  }
+
+  public autoCharge(): void {
+    super.autoCharge();
+    console.log("Smart speaker has successfully charged")
+  }
+  public getEnergyLeft(): number {
+    return super.getEnergyLeft();
+  }
+  public adjustVolume(volume: number): void {
+    super.adjustVolume(volume);
+    console.log(`Current Volume is at ${this.currentVolume}`)
+  }
 }
+
+// Test SmartTV
+const smartTV = new SmartTV(30, 50); // Initialize SmartTV with a timer of 30 and volume of 50
+smartTV.turnOn(); //"Smart TV is on"
+smartTV.connect(); //"Smart TV is connected"
+smartTV.setTimer(45); // Set timer to 45
+smartTV.adjustVolume(80); //"Current Volume is at 80"
+smartTV.mute(); //"Smart TV has been muted"
+console.log(smartTV.getEnergyLeft()); //100
+smartTV.autoCharge(); //"Smart TV has successfully charged"
+smartTV.disconnect(); //"Smart TV is disconnected"
+smartTV.turnOff(); //"Smart TV is off"
+
+// Test SmartSpeaker
+const smartSpeaker = new SmartSpeaker(60, 75); // Initialize SmartSpeaker with a timer of 60 and volume of 75
+smartSpeaker.turnOn(); //"Smart speaker is on"
+smartSpeaker.connect(); // "Smart speaker is connected"
+smartSpeaker.setTimer(90); // Set timer to 90
+smartSpeaker.adjustVolume(40); // "Current Volume is at 40"
+smartSpeaker.mute(); //"Smart speaker has been muted"
+console.log(smartSpeaker.getEnergyLeft()); // 100
+smartSpeaker.autoCharge(); // "Smart speaker has successfully charged"
+smartSpeaker.disconnect(); // "Smart speaker is disconnected"
+smartSpeaker.turnOff(); // "Smart speaker is off"

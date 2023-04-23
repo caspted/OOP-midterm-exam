@@ -1,27 +1,52 @@
-interface SmartUse {
+interface SmartOS {
   turnOff(): void;
   turnOn(): void;
   connect(): void;
   disconnect(): void;
-  getEnergyLeft(): number;
-  autoCharge(): void;
-  setTimer(timer: number): void;
-  mute(): void;
-  unmute(): void;
-  adjustVolume(volume: number): void;
-
+  lock(): void;
+  unlock(pin: number): void;
+  setOffTimer(hour: number, minute: number): void;
+  setOnTimer(hour: number, minute: number): void;
+  resetTimer(): void;
+  resetSettings(): void; //Sets all settings to default (resets timer, volume, etc.)
+  deviceStatus(): void; //console.log(object) to view all status/attributes
 }
 
-abstract class SmartHome implements SmartUse {
-  protected isConnected: boolean = false;
-  protected isDeviceOn: boolean = false;
-  protected currentEnergy: number = 100
-  protected currentVolume: number = 65;
-  protected currentTimerSet: number = 0;
+abstract class SmartHome implements SmartOS {
+  public deviceType: string; //What type of device? TV, Speaker, Light, Clock, etc.
+  public deviceBrand: string;
+  protected devicePIN: number = 1111;
+  protected isOn: boolean;
+  protected isConnected: boolean;
+  protected isUnlocked: boolean;
+  protected isTimerSet: boolean;
+  protected devicePowerSource: string;
+  protected deviceBatteryPercentage: number;
+  protected offTimerStatus: string = "Off timer not set.";
+  protected onTimerStatus: string = "On timer not set.";
 
-  abstract turnOff(): void;
+  deviceStatus(): void {
+    console.log(this);
+  } //console.log(object) to view all status/attributes
 
-  abstract turnOn(): void;
+  isPinValid(enteredPin: number): boolean {
+    if (this.devicePIN === enteredPin) {
+      this.isUnlocked = true;
+      console.log("The device is now unlocked.");
+      return true;
+    } else {
+      console.log("Invalid PIN entered, device remains locked.");
+      return false;
+    }
+  }
+
+  turnOn(): void {
+    this.isOn = true;
+  }
+
+  turnOff(): void {
+    this.isOn = false;
+  }
 
   connect(): void {
     this.isConnected = true;
@@ -31,161 +56,142 @@ abstract class SmartHome implements SmartUse {
     this.isConnected = false;
   }
 
-  setTimer(timer: number): void {
-    this.currentTimerSet = timer;
+  lock(): void {
+    this.isUnlocked = false;
   }
 
-  mute(): void {
-    this.currentVolume = 0;
+  unlock(pin: number): void {
+    this.isPinValid(pin);
   }
 
-  unmute(): void {
-    this.currentVolume = 65;
+  setOffTimer(hour: number, minute: number): void;
+  setOffTimer(hour: number, minute: number, enteredPin: number): void;
+  setOffTimer(hour: number, minute: number, enteredPin?: number): void {
+    if (!this.isUnlocked && (!enteredPin || !this.isPinValid(enteredPin))) {
+      console.log(
+        "The device is locked. Cannot set the off timer without a valid PIN."
+      );
+      return;
+    }
+
+    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+      this.isTimerSet = true;
+      const formattedMinute = minute < 10 ? `0${minute}` : minute;
+      this.offTimerStatus = `${hour}:${formattedMinute}`;
+      console.log(`Off timer set to: ${this.offTimerStatus}.`);
+    } else {
+      console.log("Invalid input");
+    }
   }
 
-  autoCharge(): void {
-    this.currentEnergy = 100;
+  setOnTimer(hour: number, minute: number): void;
+  setOnTimer(hour: number, minute: number, enteredPin: number): void;
+  setOnTimer(hour: number, minute: number, enteredPin?: number): void {
+    // Check if the device is locked and no valid PIN is provided
+    if (!this.isUnlocked && (!enteredPin || !this.isPinValid(enteredPin))) {
+      console.log(
+        "The device is locked. Cannot set the on timer without a valid PIN."
+      );
+      return;
+    }
+
+    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+      this.isTimerSet = true;
+      const formattedMinute = minute < 10 ? `0${minute}` : minute;
+      this.onTimerStatus = `${hour}:${formattedMinute}`;
+      console.log(`On timer set to: ${this.onTimerStatus}.`);
+    } else {
+      console.log("Invalid input");
+    }
   }
 
-  getEnergyLeft(): number {
-    return this.currentEnergy
-   }
-
-  adjustVolume(volume: number): void {
-    if (volume >= 0 && volume <= 100) {
-      this.currentVolume = volume;
+  resetTimer(): void {
+    this.isTimerSet = false;
+    this.onTimerStatus = "On timer not set.";
+    this.offTimerStatus = "Off timer not set.";
+    console.log("On and off timer disabled.");
   }
-}
+
+  resetSettings(): void {
+    this.isTimerSet = false;
+  } //Sets all settings to default (resets timer, volume, etc.)
 }
 
 class SmartTV extends SmartHome {
+  setChannel: number;
+  setVolume: number;
+  setBrightness: number;
+  isOn: boolean = false;
+  isConnected: boolean = false;
+  isUnlocked: boolean = false;
+  isTimerSet: boolean = false;
 
-  constructor (currentTimerSet: number, currentVolume: number) {
-    super()
-    this.currentTimerSet = currentTimerSet;
-    this.currentVolume = currentVolume;
+  constructor(
+    deviceBrand: string,
+    setChannel: number,
+    setVolume: number,
+    setBrightness: number
+  ) {
+    super();
+    this.deviceBrand = deviceBrand;
+    this.setChannel = setChannel;
+    this.setVolume = setVolume;
+    this.setBrightness = setBrightness;
   }
 
-  public turnOn(): void {
-    console.log('Smart TV is on');
+  //methods
+  changeChannel(channel: number) {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change channel.");
+    } else {
+      this.setChannel = channel;
+      console.log(`Smart TV channel set to ${this.setChannel}.`);
+    }
   }
 
-  public turnOff(): void {
-    console.log('Smart TV is off');
+  changeVolume(volume: number) {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change volume.");
+    } else {
+      this.setVolume = volume;
+      console.log(`Smart TV volume set to ${this.setVolume}.`);
+    }
   }
 
-  public connect(): void {
-    super.connect();
-    console.log(`Smart TV is connected`)
+  changeBrightness(brightness: number) {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change brightness.");
+    } else {
+      this.setBrightness = brightness;
+      console.log(`Smart TV brightness set to ${this.setBrightness}.`);
+    }
   }
 
-  public disconnect(): void {
-    super.disconnect();
-    console.log(`Smart TV is disconnected`)
+  setToIdle() {
+    if (!this.isOn) {
+      console.log("Device is off, unable to set it to idle.");
+    } else {
+      this.setBrightness = 10;
+      this.setVolume = 0;
+      console.log(`Smart TV is in idle mode.`);
+    }
   }
 
-  public setTimer(timer: number): void {
-      super.setTimer(timer);
-  }
-
-  public mute(): void {
-    super.mute();
-    console.log(`Smart TV has been muted`)
-  }
-
-  public unmute(): void {
-    super.unmute();
-    console.log("Smart TV has been unmuted")
-  }
-
-  public autoCharge(): void {
-    super.autoCharge();
-    console.log("Smart TV has successfully charged")
-  }
-
-  public getEnergyLeft(): number {
-    return super.getEnergyLeft();
-  }
-
-  public adjustVolume(volume: number): void {
-    super.adjustVolume(volume);
-    console.log(`Current Volume is at ${this.currentVolume}`)
-  }
-
-}
-
-class SmartSpeaker extends SmartHome {
-  constructor (currentTimerSet: number, currentVolume: number) {
-    super()
-    this.currentTimerSet = currentTimerSet;
-    this.currentVolume = currentVolume;
-  }
-
-  public turnOn(): void {
-    console.log('Smart speaker is on');
-  }
-
-  public turnOff(): void {
-    console.log('Smart speaker is off');
-  }
-
-  public connect(): void {
-    super.connect();
-    console.log(`Smart speaker is connected`)
-  }
-
-  public disconnect(): void {
-    super.disconnect();
-    console.log(`Smart speaker is disconnected`)
-  }
-
-  public setTimer(timer: number): void {
-      super.setTimer(timer);
-  }
-
-  public mute(): void {
-    super.mute();
-    console.log(`Smart speaker has been muted`)
-  }
-
-  public unmute(): void {
-    super.unmute();
-    console.log("Smart speaker has been unmuted")
-  }
-
-  public autoCharge(): void {
-    super.autoCharge();
-    console.log("Smart speaker has successfully charged")
-  }
-  public getEnergyLeft(): number {
-    return super.getEnergyLeft();
-  }
-  public adjustVolume(volume: number): void {
-    super.adjustVolume(volume);
-    console.log(`Current Volume is at ${this.currentVolume}`)
+  mute() {
+    if (!this.isOn) {
+      console.log("Device is off, unable to mute.");
+    } else {
+      this.setVolume = 0;
+      console.log("Smart TV muted.");
+    }
   }
 }
 
-// Test SmartTV
-const smartTV = new SmartTV(30, 50); // Initialize SmartTV with a timer of 30 and volume of 50
-smartTV.turnOn(); //"Smart TV is on"
-smartTV.connect(); //"Smart TV is connected"
-smartTV.setTimer(45); // Set timer to 45
-smartTV.adjustVolume(80); //"Current Volume is at 80"
-smartTV.mute(); //"Smart TV has been muted"
-console.log(smartTV.getEnergyLeft()); //100
-smartTV.autoCharge(); //"Smart TV has successfully charged"
-smartTV.disconnect(); //"Smart TV is disconnected"
-smartTV.turnOff(); //"Smart TV is off"
+const samsungTV = new SmartTV("samsungTV", 1, 50, 50);
 
-// Test SmartSpeaker
-const smartSpeaker = new SmartSpeaker(60, 75); // Initialize SmartSpeaker with a timer of 60 and volume of 75
-smartSpeaker.turnOn(); //"Smart speaker is on"
-smartSpeaker.connect(); // "Smart speaker is connected"
-smartSpeaker.setTimer(90); // Set timer to 90
-smartSpeaker.adjustVolume(40); // "Current Volume is at 40"
-smartSpeaker.mute(); //"Smart speaker has been muted"
-console.log(smartSpeaker.getEnergyLeft()); // 100
-smartSpeaker.autoCharge(); // "Smart speaker has successfully charged"
-smartSpeaker.disconnect(); // "Smart speaker is disconnected"
-smartSpeaker.turnOff(); // "Smart speaker is off"
+//test methods:
+samsungTV.mute();
+samsungTV.setOnTimer(8, 0);
+console.log(samsungTV.isOn);
+console.log(samsungTV.isUnlocked);
+samsungTV.unlock(2);

@@ -13,15 +13,15 @@ interface SmartOS {
 }
 
 abstract class SmartHome implements SmartOS {
-  public deviceType: string; //What type of device? TV, Speaker, Light, Clock, etc.
-  public deviceBrand: string;
+  public deviceType: string = ""; //What type of device? TV, Speaker, Light, Clock, etc.
+  public deviceBrand: string = "";
   protected devicePIN: number = 1111;
-  protected isOn: boolean;
-  protected isConnected: boolean;
-  protected isUnlocked: boolean;
-  protected isTimerSet: boolean;
-  protected devicePowerSource: string;
-  protected deviceBatteryPercentage: number;
+  protected isOn: boolean = false;
+  protected isConnected: boolean = false;
+  protected isUnlocked: boolean = false;
+  protected isTimerSet: boolean = false;
+  protected devicePowerSource: string =  "";
+  protected deviceBatteryPercentage: number = 100;
   protected offTimerStatus: string = "Off timer not set.";
   protected onTimerStatus: string = "On timer not set.";
 
@@ -37,7 +37,7 @@ abstract class SmartHome implements SmartOS {
     } else {
       console.log("Invalid PIN entered, device remains locked.");
       return false;
-    }
+    } 
   }
 
   turnOn(): void {
@@ -187,11 +187,186 @@ class SmartTV extends SmartHome {
   }
 }
 
+class SmartSpeaker extends SmartHome {
+
+  private playlist: string[] = [
+    "Bohemian Rhapsody by Queen",
+    "Stairway to Heaven by Led Zeppelin",
+    "Imagine by John Lennon",
+    "I Will Always Love You by Whitney Houston",
+    "Billie Jean by Michael Jackson",
+    "Smells Like Teen Spirit by Nirvana",
+    "Like a Rolling Stone by Bob Dylan",
+    "Hotel California by The Eagles",
+    "Hey Jude by The Beatles",
+    "Sweet Child O' Mine by Guns N' Roses"
+  ]
+
+  private currentSong: string;
+  private setVolume: number;
+  private setBrightness: number;
+  private lightColor: string;
+  protected isOn: boolean = false;
+  protected isConnected: boolean = false;
+  private numOfLoops: number = 0;
+
+  constructor(
+    currentSong: string,
+    deviceBrand: string,
+    setVolume: number,
+    setBrightness: number,
+    lightColor: string
+  ) {
+
+    super();
+    this.currentSong = currentSong
+    this.deviceBrand = deviceBrand;
+    this.setVolume = setVolume;
+    this.setBrightness = setBrightness;
+    this.lightColor = lightColor;
+  }
+
+  public changeVolume(volume: number) {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change volume.");
+    } else {
+      this.setVolume = volume;
+      console.log(`Smart Speaker volume set to ${this.setVolume}.`);
+    }
+  }
+
+  public changeBrightness(brightness: number) {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change brightness.");
+    } else {
+      this.setBrightness = brightness;
+      console.log(`Smart Speaker brightness set to ${this.setBrightness}.`);
+
+      if (brightness > 50) {
+        this.deviceBatteryPercentage -= 20;
+      } else {
+        this.deviceBatteryPercentage -= 10;
+      }
+    }
+  }
+
+  public setToIdle() {
+    if (!this.isOn) {
+      console.log("Device is off, unable to set it to idle.");
+    } else {
+      this.setBrightness = 10;
+      this.setVolume = 0;
+      console.log(`Smart Speaker is in idle mode.`);
+    }
+  }
+
+  public mute() {
+    if (!this.isOn) {
+      console.log("Device is off, unable to mute.");
+    } else {
+      this.setVolume = 0;
+      console.log("Smart Speaker is muted.");
+    }
+  }
+
+  public connectDevice(device: SmartTV ): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to connect.");
+    } else {
+      console.log(`${this.deviceBrand} is connected to ${device.deviceBrand}`)
+    }
+  }
+
+  public setLightColor(color: string): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to change the color of the lights.");
+    } else {
+    this.lightColor = color;
+    console.log(`The LED lights have been changed to ${this.lightColor}`)
+    }
+  }
+
+  public shufflePlaylist(): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to shuffle.");
+    } else {
+      for(let i = 0; i < this.playlist.length; i++) {
+    let random: number = Math.floor(Math.random() * this.playlist.length)
+    console.log(this.playlist[random])
+      }
+  
+    this.deviceBatteryPercentage -= 15
+    }
+  }
+
+  public playNewSong(song: string): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to play.");
+    } else {
+      this.currentSong = song
+      console.log(`${song} is being played`)
+    }
+  }
+
+  public setLoop(loops: number): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to loop.");
+    } else {
+      this.numOfLoops = loops;
+      if (this.numOfLoops != 0) {
+        this.isTimerSet = true;
+        for (let i = 0; i <= this.numOfLoops; i++) {
+          console.log(`${this.currentSong} is being played`)
+        }
+      }
+      
+      if (loops > 20) {
+        this.deviceBatteryPercentage -= 10
+      } else {
+        this.deviceBatteryPercentage -= 5
+      }
+    }
+  }
+
+  public getBattery(): void {
+    if (!this.isOn) {
+      console.log("Device is off, unable to get information.");
+    } else {
+      console.log(`Your battery life is at ${this.deviceBatteryPercentage}%`)
+    }
+  }
+
+  public chargeDevice(): void {
+    this.deviceBatteryPercentage = 100;
+  }
+
+
+}
+
+
 const samsungTV = new SmartTV("samsungTV", 1, 50, 50);
 
 //test methods:
+samsungTV.turnOn()
 samsungTV.mute();
 samsungTV.setOnTimer(8, 0);
 console.log(samsungTV.isOn);
 console.log(samsungTV.isUnlocked);
 samsungTV.unlock(2);
+
+
+const bluetooth = new SmartSpeaker("Don't Stop Believin by Journey", "JBL", 70, 65, "blue")
+
+bluetooth.turnOn()
+bluetooth.chargeDevice()
+bluetooth.changeVolume(50)
+bluetooth.changeBrightness(40)
+bluetooth.setToIdle()
+bluetooth.mute()
+bluetooth.connectDevice(samsungTV)
+bluetooth.setLightColor("red")
+bluetooth.shufflePlaylist()
+bluetooth.playNewSong("Livin' on a Prayer by Bon Jovi")
+bluetooth.setLoop(3)
+bluetooth.getBattery()
+bluetooth.turnOff()

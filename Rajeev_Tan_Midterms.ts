@@ -21,7 +21,7 @@ abstract class SmartHome implements SmartOS {
   protected isUnlocked: boolean = false;
   protected isTimerSet: boolean = false;
   protected devicePowerSource: string =  "";
-  protected deviceBatteryPercentage: number = 100;
+  protected deviceBatteryPercentage: number = 0;
   protected offTimerStatus: string = "Off timer not set.";
   protected onTimerStatus: string = "On timer not set.";
 
@@ -302,6 +302,7 @@ class SmartSpeaker extends SmartHome {
     } else {
       for(let i = 0; i < this.playlist.length; i++) {
     let random: number = Math.floor(Math.random() * this.playlist.length)
+    this.currentSong = this.playlist[random];
     console.log(this.playlist[random])
       }
   
@@ -340,11 +341,11 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public getBattery(): void {
+  public getBattery(): number | void {
     if (!this.isOn) {
       console.log("Device is off, unable to get information.");
     } else {
-      console.log(`Your battery life is at ${this.deviceBatteryPercentage}%`)
+      return this.deviceBatteryPercentage 
     }
   }
 
@@ -376,7 +377,12 @@ samsungTV.unlock(2);
 const bluetooth = new SmartSpeaker("Don't Stop Believin by Journey", "JBL", 70, 65, "blue")
 
 bluetooth.turnOn()
-bluetooth.chargeDevice()
+
+if (bluetooth.getBattery() === 0) {
+  bluetooth.chargeDevice()
+} 
+
+console.log(bluetooth.getBattery())
 bluetooth.changeVolume(50)
 bluetooth.changeBrightness(40)
 bluetooth.setToIdle()
@@ -386,6 +392,8 @@ bluetooth.setLightColor("red")
 bluetooth.shufflePlaylist()
 bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70)
 bluetooth.setLoop(3)
-bluetooth.getBattery()
+bluetooth.shufflePlaylist()
+bluetooth.setLoop(4)
 bluetooth.deviceStatus()
 bluetooth.turnOff()
+

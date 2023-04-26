@@ -259,6 +259,8 @@ class SmartSpeaker extends SmartHome {
     this.setVolume = setVolume;
     this.setBrightness = setBrightness;
     this.lightColor = lightColor;
+    this.deviceType = "Smart Speaker";
+    this.devicePIN = "none"
   }
 
   public changeVolume(volume: number): void {
@@ -327,6 +329,7 @@ class SmartSpeaker extends SmartHome {
     } else {
       for(let i = 0; i < this.playlist.length; i++) {
     let random: number = Math.floor(Math.random() * this.playlist.length)
+    this.currentSong = this.playlist[random];
     console.log(this.playlist[random])
       }
   
@@ -365,11 +368,11 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public getBattery(): void {
+  public getBattery(): number | void {
     if (!this.isOn) {
       console.log("Device is off, unable to get information.");
     } else {
-      console.log(`Your battery life is at ${this.deviceBatteryPercentage}%`)
+      return this.deviceBatteryPercentage 
     }
   }
 
@@ -385,6 +388,14 @@ class SmartSpeaker extends SmartHome {
       console.log(this)
     }
   } //console.log(SmartSpeaker) to view all status/attributes
+
+  public resetSettings(): void {
+    this.setVolume = 100;
+    this.setBrightness = 30;
+    this.lightColor = "white";
+    this.numOfLoops = 0;
+
+  } //Sets all settings to default by method overidding
 
 }
 
@@ -412,16 +423,23 @@ console.log("------------------------------");
 const bluetooth = new SmartSpeaker("Don't Stop Believin by Journey", "JBL", 70, 65, "blue")
 
 bluetooth.turnOn()
-bluetooth.chargeDevice()
+
+if (bluetooth.getBattery() === 0) {
+  bluetooth.chargeDevice()
+} 
+
+console.log(bluetooth.getBattery())
 bluetooth.changeVolume(50)
 bluetooth.changeBrightness(40)
 bluetooth.setToIdle()
 bluetooth.mute()
-bluetooth.connectDevice(samsungTV)
 bluetooth.setLightColor("red")
 bluetooth.shufflePlaylist()
 bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70)
 bluetooth.setLoop(3)
-bluetooth.getBattery()
+bluetooth.shufflePlaylist()
+bluetooth.setLoop(4)
+bluetooth.deviceStatus()
+bluetooth.resetSettings()
 bluetooth.deviceStatus()
 bluetooth.turnOff()

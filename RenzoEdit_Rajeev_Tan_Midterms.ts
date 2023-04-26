@@ -21,7 +21,6 @@ abstract class SmartHome implements SmartOS {
   protected isUnlocked: boolean = false;
   protected isTimerSet: boolean = false;
   protected volume: number = 50;
-  protected devicePowerSource: string =  "";
   protected deviceBatteryPercentage: number = 100;
   protected offTimerStatus: string = "Off timer not set.";
   protected onTimerStatus: string = "On timer not set.";
@@ -138,13 +137,13 @@ abstract class SmartHome implements SmartOS {
 }
 
 class SmartTV extends SmartHome {
-  setChannel: number;
-  setVolume: number;
-  setBrightness: number;
-  isOn: boolean = false;
-  isConnected: boolean = false;
-  isUnlocked: boolean = false;
-  isTimerSet: boolean = false;
+  private setChannel: number;
+  private setVolume: number;
+  private setBrightness: number;
+  public isOn: boolean = false;
+  public isConnected: boolean = false;
+  public isUnlocked: boolean = false;
+  public isTimerSet: boolean = false;
 
   constructor(
     deviceBrand: string,

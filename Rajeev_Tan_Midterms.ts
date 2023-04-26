@@ -15,12 +15,14 @@ interface SmartOS {
 abstract class SmartHome implements SmartOS {
   public deviceType: string = ""; //What type of device? TV, Speaker, Light, Clock, etc.
   public deviceBrand: string = "";
-  protected devicePIN: number | string = 1111;
+  protected devicePIN: number = 1111;
   protected isOn: boolean = false;
   protected isConnected: boolean = false;
   protected isUnlocked: boolean = false;
   protected isTimerSet: boolean = false;
-  protected deviceBatteryPercentage: number = 0;
+  protected volume: number = 50;
+  protected devicePowerSource: string = "";
+  protected deviceBatteryPercentage: number = 100;
   protected offTimerStatus: string = "Off timer not set.";
   protected onTimerStatus: string = "On timer not set.";
 
@@ -29,38 +31,52 @@ abstract class SmartHome implements SmartOS {
   } //console.log(object) to view all status/attributes
 
   isPinValid(enteredPin: number): boolean {
-    if (this.devicePIN === enteredPin) {
+    if (this.isUnlocked === true) {
+      return true;
+    } else if (this.devicePIN === enteredPin) {
       this.isUnlocked = true;
       console.log("The device is now unlocked.");
       return true;
     } else {
       console.log("Invalid PIN entered, device remains locked.");
       return false;
-    } 
+    }
   }
 
   turnOn(): void {
     this.isOn = true;
+    console.log(`${this.deviceBrand} turned on.`);
   }
 
   turnOff(): void {
     this.isOn = false;
+    console.log(`${this.deviceBrand} turned off.`);
   }
 
   connect(): void {
     this.isConnected = true;
+    console.log(`${this.deviceBrand} has been connected.`);
   }
 
   disconnect(): void {
     this.isConnected = false;
+    console.log(`${this.deviceBrand} has been disconnected.`);
   }
 
   lock(): void {
+    if (this.isUnlocked === false) {
+      console.log("Device is already locked.");
+      return;
+    }
     this.isUnlocked = false;
   }
 
   unlock(pin: number): void {
     this.isPinValid(pin);
+    if (this.isUnlocked === true) {
+      console.log("Device is already unlocked.");
+      return;
+    }
   }
 
   setOffTimer(hour: number, minute: number): void;
@@ -117,17 +133,18 @@ abstract class SmartHome implements SmartOS {
 
   resetSettings(): void {
     this.isTimerSet = false;
+    this.volume = 50;
   } //Sets all settings to default (resets timer, volume, etc.)
 }
 
 class SmartTV extends SmartHome {
-  setChannel: number;
-  setVolume: number;
-  setBrightness: number;
-  isOn: boolean = false;
-  isConnected: boolean = false;
-  isUnlocked: boolean = false;
-  isTimerSet: boolean = false;
+  public isOn: boolean = false;
+  public isConnected: boolean = false;
+  public isUnlocked: boolean = false;
+  public isTimerSet: boolean = false;
+  private setChannel: number;
+  private setVolume: number;
+  private setBrightness: number;
 
   constructor(
     deviceBrand: string,
@@ -143,7 +160,7 @@ class SmartTV extends SmartHome {
   }
 
   //methods
-  changeChannel(channel: number) {
+  public changeChannel(channel: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to change channel.");
     } else {
@@ -152,7 +169,7 @@ class SmartTV extends SmartHome {
     }
   }
 
-  changeVolume(volume: number) {
+  public changeVolume(volume: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to change volume.");
     } else {
@@ -161,7 +178,7 @@ class SmartTV extends SmartHome {
     }
   }
 
-  changeBrightness(brightness: number) {
+  public changeBrightness(brightness: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to change brightness.");
     } else {
@@ -170,7 +187,7 @@ class SmartTV extends SmartHome {
     }
   }
 
-  setToIdle() {
+  public setToIdle(): void {
     if (!this.isOn) {
       console.log("Device is off, unable to set it to idle.");
     } else {
@@ -180,7 +197,7 @@ class SmartTV extends SmartHome {
     }
   }
 
-  mute() {
+  public mute(): void {
     if (!this.isOn) {
       console.log("Device is off, unable to mute.");
     } else {
@@ -188,10 +205,18 @@ class SmartTV extends SmartHome {
       console.log("Smart TV muted.");
     }
   }
+
+  // Method overriding by changing by make it so that it won't share information if device is off
+  public deviceStatus(): void {
+    if (!this.isOn) {
+      console.log("Device is off");
+    } else {
+      console.log(this);
+    }
+  } //console.log(SmartTV) to view all status/attributes
 }
 
 class SmartSpeaker extends SmartHome {
-
   private playlist: string[] = [
     "Bohemian Rhapsody by Queen",
     "Stairway to Heaven by Led Zeppelin",
@@ -208,8 +233,8 @@ class SmartSpeaker extends SmartHome {
     "Sweet Child O' Mine by Guns N' Roses",
     "Pare Ko by Eraserheads",
     "Narda by Kamikazee",
-    "Himala by Rivermaya"
-  ]
+    "Himala by Rivermaya",
+  ];
 
   private currentSong: string;
   private setVolume: number | undefined;
@@ -226,15 +251,12 @@ class SmartSpeaker extends SmartHome {
     setBrightness: number,
     lightColor: string
   ) {
-
-    super(); 
-    this.currentSong = currentSong
+    super();
+    this.currentSong = currentSong;
     this.deviceBrand = deviceBrand;
     this.setVolume = setVolume;
     this.setBrightness = setBrightness;
     this.lightColor = lightColor;
-    this.deviceType = "Smart Speaker";
-    this.devicePIN = "none"
   }
 
   public changeVolume(volume: number): void {
@@ -280,11 +302,11 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public connectDevice(device: SmartTV ): void {
+  public connectDevice(device: SmartTV): void {
     if (!this.isOn) {
       console.log("Device is off, unable to connect.");
     } else {
-      console.log(`${this.deviceBrand} is connected to ${device.deviceBrand}`)
+      console.log(`${this.deviceBrand} is connected to ${device.deviceBrand}`);
     }
   }
 
@@ -292,8 +314,8 @@ class SmartSpeaker extends SmartHome {
     if (!this.isOn) {
       console.log("Device is off, unable to change the color of the lights.");
     } else {
-    this.lightColor = color;
-    console.log(`The LED lights have been changed to ${this.lightColor}`)
+      this.lightColor = color;
+      console.log(`The LED lights have been changed to ${this.lightColor}`);
     }
   }
 
@@ -301,24 +323,23 @@ class SmartSpeaker extends SmartHome {
     if (!this.isOn) {
       console.log("Device is off, unable to shuffle.");
     } else {
-      for(let i = 0; i < this.playlist.length; i++) {
-    let random: number = Math.floor(Math.random() * this.playlist.length)
-    this.currentSong = this.playlist[random];
-    console.log(this.playlist[random])
+      for (let i = 0; i < this.playlist.length; i++) {
+        let random: number = Math.floor(Math.random() * this.playlist.length);
+        console.log(this.playlist[random]);
       }
-  
-    this.deviceBatteryPercentage -= 15
+
+      this.deviceBatteryPercentage -= 15;
     }
   }
 
   //Method overloading by playing a new song and changing the volume
-  public playMedia(song: string, volume?: number): void{
+  public playMedia(song: string, volume?: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to play.");
     } else {
-      this.setVolume = volume
-      this.currentSong = song
-      console.log(`${song} is being played`)
+      this.setVolume = volume;
+      this.currentSong = song;
+      console.log(`${song} is being played`);
     }
   }
 
@@ -330,23 +351,23 @@ class SmartSpeaker extends SmartHome {
       if (this.numOfLoops != 0) {
         this.isTimerSet = true;
         for (let i = 0; i <= this.numOfLoops; i++) {
-          console.log(`${this.currentSong} is being played`)
+          console.log(`${this.currentSong} is being played`);
         }
       }
-      
+
       if (loops > 20) {
-        this.deviceBatteryPercentage -= 10
+        this.deviceBatteryPercentage -= 10;
       } else {
-        this.deviceBatteryPercentage -= 5
+        this.deviceBatteryPercentage -= 5;
       }
     }
   }
 
-  public getBattery(): number | void {
+  public getBattery(): void {
     if (!this.isOn) {
       console.log("Device is off, unable to get information.");
     } else {
-      return this.deviceBatteryPercentage 
+      console.log(`Your battery life is at ${this.deviceBatteryPercentage}%`);
     }
   }
 
@@ -357,54 +378,53 @@ class SmartSpeaker extends SmartHome {
   // Method overriding by changing by make it so that it won't share information if device is off
   public deviceStatus(): void {
     if (!this.isOn) {
-      console.log("Device is off") 
+      console.log("Device is off");
     } else {
-      console.log(this)
+      console.log(this);
     }
   } //console.log(SmartSpeaker) to view all status/attributes
-
-  public resetSettings(): void {
-    this.setVolume = 100;
-    this.setBrightness = 30;
-    this.lightColor = "white";
-    this.numOfLoops = 0;
-
-  } //Sets all settings to default by method overidding
-
 }
 
 const samsungTV = new SmartTV("samsungTV", 1, 50, 50);
 
 //test methods:
-samsungTV.turnOn()
-samsungTV.mute();
-samsungTV.setOnTimer(8, 0);
 console.log(samsungTV.isOn);
 console.log(samsungTV.isUnlocked);
-samsungTV.unlock(2);
+samsungTV.turnOn();
+samsungTV.mute();
+samsungTV.setOnTimer(8, 0);
+samsungTV.setOnTimer(8, 0, 1111);
+samsungTV.lock();
+samsungTV.unlock(5555);
+samsungTV.unlock(1111);
+samsungTV.connect();
+samsungTV.turnOff();
+samsungTV.changeChannel(3);
+samsungTV.turnOn();
+samsungTV.changeChannel(3);
+samsungTV.deviceStatus();
 
-const bluetooth = new SmartSpeaker("Don't Stop Believin by Journey", "JBL", 70, 65, "blue")
+console.log("------------------------------");
 
-bluetooth.turnOn()
+const bluetooth = new SmartSpeaker(
+  "Don't Stop Believin by Journey",
+  "JBL",
+  70,
+  65,
+  "blue"
+);
 
-if (bluetooth.getBattery() === 0) {
-  bluetooth.chargeDevice()
-} 
-
-console.log(bluetooth.getBattery())
-bluetooth.changeVolume(50)
-bluetooth.changeBrightness(40)
-bluetooth.setToIdle()
-bluetooth.mute()
-bluetooth.connectDevice(samsungTV)
-bluetooth.setLightColor("red")
-bluetooth.shufflePlaylist()
-bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70)
-bluetooth.setLoop(3)
-bluetooth.shufflePlaylist()
-bluetooth.setLoop(4)
-bluetooth.deviceStatus()
-bluetooth.resetSettings()
-bluetooth.deviceStatus()
-bluetooth.turnOff()
-
+bluetooth.turnOn();
+bluetooth.chargeDevice();
+bluetooth.changeVolume(50);
+bluetooth.changeBrightness(40);
+bluetooth.setToIdle();
+bluetooth.mute();
+bluetooth.connectDevice(samsungTV);
+bluetooth.setLightColor("red");
+bluetooth.shufflePlaylist();
+bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70);
+bluetooth.setLoop(3);
+bluetooth.getBattery();
+bluetooth.deviceStatus();
+bluetooth.turnOff();

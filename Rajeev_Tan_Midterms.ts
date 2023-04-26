@@ -105,6 +105,10 @@ abstract class SmartHome implements SmartOS {
     }
   }
 
+  playMedia(media: string): void {
+    console.log(`Playing media: ${media}`);
+  }
+
   resetTimer(): void {
     this.isTimerSet = false;
     this.onTimerStatus = "On timer not set.";
@@ -193,17 +197,23 @@ class SmartSpeaker extends SmartHome {
     "Bohemian Rhapsody by Queen",
     "Stairway to Heaven by Led Zeppelin",
     "Imagine by John Lennon",
+    "Awitin Mo, Isasayaw Ko by VST & Co.",
+    "Tuloy Pa Rin by Neocolours",
+    "Magasin by Eraserheads",
     "I Will Always Love You by Whitney Houston",
     "Billie Jean by Michael Jackson",
     "Smells Like Teen Spirit by Nirvana",
     "Like a Rolling Stone by Bob Dylan",
     "Hotel California by The Eagles",
     "Hey Jude by The Beatles",
-    "Sweet Child O' Mine by Guns N' Roses"
+    "Sweet Child O' Mine by Guns N' Roses",
+    "Pare Ko by Eraserheads",
+    "Narda by Kamikazee",
+    "Himala by Rivermaya"
   ]
 
   private currentSong: string;
-  private setVolume: number;
+  private setVolume: number | undefined;
   private setBrightness: number;
   private lightColor: string;
   protected isOn: boolean = false;
@@ -218,7 +228,7 @@ class SmartSpeaker extends SmartHome {
     lightColor: string
   ) {
 
-    super();
+    super(); 
     this.currentSong = currentSong
     this.deviceBrand = deviceBrand;
     this.setVolume = setVolume;
@@ -226,7 +236,7 @@ class SmartSpeaker extends SmartHome {
     this.lightColor = lightColor;
   }
 
-  public changeVolume(volume: number) {
+  public changeVolume(volume: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to change volume.");
     } else {
@@ -235,7 +245,7 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public changeBrightness(brightness: number) {
+  public changeBrightness(brightness: number): void {
     if (!this.isOn) {
       console.log("Device is off, unable to change brightness.");
     } else {
@@ -250,7 +260,7 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public setToIdle() {
+  public setToIdle(): void {
     if (!this.isOn) {
       console.log("Device is off, unable to set it to idle.");
     } else {
@@ -299,10 +309,12 @@ class SmartSpeaker extends SmartHome {
     }
   }
 
-  public playNewSong(song: string): void {
+  //Method overloading by playing a new song and changing the volume
+  public playMedia(song: string, volume?: number): void{
     if (!this.isOn) {
       console.log("Device is off, unable to play.");
     } else {
+      this.setVolume = volume
       this.currentSong = song
       console.log(`${song} is being played`)
     }
@@ -340,9 +352,16 @@ class SmartSpeaker extends SmartHome {
     this.deviceBatteryPercentage = 100;
   }
 
+  // Method overriding by changing by make it so that it won't share information if device is off
+  public deviceStatus(): void {
+    if (!this.isOn) {
+      console.log("Device is off") 
+    } else {
+      console.log(this)
+    }
+  } //console.log(SmartSpeaker) to view all status/attributes
 
 }
-
 
 const samsungTV = new SmartTV("samsungTV", 1, 50, 50);
 
@@ -353,7 +372,6 @@ samsungTV.setOnTimer(8, 0);
 console.log(samsungTV.isOn);
 console.log(samsungTV.isUnlocked);
 samsungTV.unlock(2);
-
 
 const bluetooth = new SmartSpeaker("Don't Stop Believin by Journey", "JBL", 70, 65, "blue")
 
@@ -366,7 +384,8 @@ bluetooth.mute()
 bluetooth.connectDevice(samsungTV)
 bluetooth.setLightColor("red")
 bluetooth.shufflePlaylist()
-bluetooth.playNewSong("Livin' on a Prayer by Bon Jovi")
+bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70)
 bluetooth.setLoop(3)
 bluetooth.getBattery()
+bluetooth.deviceStatus()
 bluetooth.turnOff()

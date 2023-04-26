@@ -15,12 +15,11 @@ interface SmartOS {
 abstract class SmartHome implements SmartOS {
   public deviceType: string = ""; //What type of device? TV, Speaker, Light, Clock, etc.
   public deviceBrand: string = "";
-  protected devicePIN: number = 1111;
+  protected devicePIN: number | string = 1111;
   protected isOn: boolean = false;
   protected isConnected: boolean = false;
   protected isUnlocked: boolean = false;
   protected isTimerSet: boolean = false;
-  protected devicePowerSource: string =  "";
   protected deviceBatteryPercentage: number = 0;
   protected offTimerStatus: string = "Off timer not set.";
   protected onTimerStatus: string = "On timer not set.";
@@ -234,6 +233,8 @@ class SmartSpeaker extends SmartHome {
     this.setVolume = setVolume;
     this.setBrightness = setBrightness;
     this.lightColor = lightColor;
+    this.deviceType = "Smart Speaker";
+    this.devicePIN = "none"
   }
 
   public changeVolume(volume: number): void {
@@ -362,6 +363,14 @@ class SmartSpeaker extends SmartHome {
     }
   } //console.log(SmartSpeaker) to view all status/attributes
 
+  public resetSettings(): void {
+    this.setVolume = 100;
+    this.setBrightness = 30;
+    this.lightColor = "white";
+    this.numOfLoops = 0;
+
+  } //Sets all settings to default by method overidding
+
 }
 
 const samsungTV = new SmartTV("samsungTV", 1, 50, 50);
@@ -394,6 +403,8 @@ bluetooth.playMedia("Livin' on a Prayer by Bon Jovi", 70)
 bluetooth.setLoop(3)
 bluetooth.shufflePlaylist()
 bluetooth.setLoop(4)
+bluetooth.deviceStatus()
+bluetooth.resetSettings()
 bluetooth.deviceStatus()
 bluetooth.turnOff()
 
